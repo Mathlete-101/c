@@ -45,8 +45,37 @@ prompts = {
         "write_command": "The user will give you a task to complete in the terminal. Respond with only the command as it would be typed, no extra formatting. If you cannot complete this task, begin your response with a '/' and explain why if you believe it would be useful."
 }
 
+
+def text_function(name, description):
+    return {
+            "type": "function",
+            "function": {
+                "name": name,
+                "description": description,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "text": {
+                            "type": "string",
+                            "descripion": "the input text"
+                        }
+                    }
+                }
+            }
+        }
+
+tool_dict = {
+    "execute": "execute text as a command on the system.",
+    "thought": "think about what you need to do. The user does not see this.",
+    "ask": "ask the user a question.",
+    "finish": "print text and terminate if you have completed the task or can make no more progress on it.",
+}
+tools = [text_function(k, v) for k, v in tool_dict.items()]
+
+        
+
 def cmd_exec(command):
-    subprocess.run(command, shell=True)
+    return (lambda a: a.stdout + a.stderr)(subprocess.run(command, shell=True, capture_output = True, text=True))
 
 #run the dry run command, if no other args were passed
 if len(sys.argv) == 1:
@@ -87,10 +116,45 @@ elif a1 == "-h":
 #terrifying mode
 elif a1 in ("-i", "-ii"):
     request = " ".join(sys.argv[2:])
+
     client = OpenAI(api_key=conf["api_key"])
+
+    messages=[
+            {"role": "system", "content": """The user will give you task to complete in the command line. Use the provided tools to complete it."""},
+            {"role": "system", "content": f"Information you may find useful about the user: {conf['notes']} "},
+            {"role": 'user', "content": request}
+    ]
+    action = ""
+    while action != "finish":
+        print()
+        completion = client.chat.completions.create(model="gpt-4o", messages = messages, tools=tools, tool_choice="required")
+
+        message = completion.choices[0].message
+        messages.append(message)
+        for call in message.tool_calls:
+            action = call.function.name.strip()
+            text = json.loads(call.function.arguments)["text"]
+
+            response = {"role": "tool", "tool_call_id": call.id, "content":""}
+
+            print(f"chat> {text}")
+            
+            if action == "ask":
+                response["content"] = input("user>")
+            elif action == "say" or action == "thought" or action == "finish":
+                pass # already printed
+            
+            if a1 == "-ii":
+                if input("press enter to continue"):
+                    exit()
+            
+            if action == "execute":
+                response["content"] = cmd_exec(text)
+                print(response["content"])
+
+            messages.append(response)
+    exit()
     
-    while True:
-        
 
 #completions
 else:
