@@ -3,6 +3,10 @@ from openai import OpenAI
 import json
 import sys
 import subprocess
+import command_runner
+import time
+
+path_base = "/home/njensen/.tools/c_command/"
 
 def oops():
     print("""
@@ -21,7 +25,7 @@ def oops():
 
 
 try:
-    with open("conf.json") as file:
+    with open(path_base + "conf.json") as file:
         conf = json.load(file)
 except FileNotFoundError:
     conf = {"api_key": "", "model_name": "gpt-4o-mini", "notes":{"shell": "bash", "system": "linux"}}
@@ -75,12 +79,12 @@ tools = [text_function(k, v) for k, v in tool_dict.items()]
         
 
 def cmd_exec(command):
-    return (lambda a: a.stdout + a.stderr)(subprocess.run(command, shell=True, capture_output = True, text=True))
+    return command_runner.attempt_4(command)
 
 #run the dry run command, if no other args were passed
 if len(sys.argv) == 1:
     try:
-        with open("dry_run", "r") as file:
+        with open(path_base + "dry_run", "r") as file:
             cmd_exec(file.read())
             exit()
     except FileNotFoundError:
@@ -127,7 +131,7 @@ elif a1 in ("-i", "-ii"):
     action = ""
     while action != "finish":
         print()
-        completion = client.chat.completions.create(model="gpt-4o", messages = messages, tools=tools, tool_choice="required")
+        completion = client.chat.completions.create(model=conf["model_name"], messages = messages, tools=tools, tool_choice="required")
 
         message = completion.choices[0].message
         messages.append(message)
@@ -167,12 +171,12 @@ else:
     
     if response[0] != "/":
         if dry_run:
-            with open("dry_run", "w") as file:
+            with open(path_base + "dry_run", "w") as file:
                 file.write(response)
         else:
             print(cmd_exec(response))
 
 #write the config file
-with open("conf.json", "w") as file:
+with open(path_base + "conf.json", "w") as file:
     json.dump(conf, file)
 
