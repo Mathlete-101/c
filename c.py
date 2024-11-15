@@ -67,7 +67,7 @@ def text_function(name, description):
 tool_dict = {
     "execute": "execute text as a command on the system.",
     "thought": "think about what you need to do. The user does not see this.",
-    "ask": "ask the user a question.",
+    "ask": "ask the user a question. If you think you know what the user wants or can figure it out by looking around, do that instead.",
     "finish": "print text and terminate if you have completed the task or can make no more progress on it.",
 }
 tools = [text_function(k, v) for k, v in tool_dict.items()]
@@ -170,7 +170,7 @@ else:
             with open("dry_run", "w") as file:
                 file.write(response)
         else:
-            cmd_exec(response) 
+            print(cmd_exec(response))
 
 #write the config file
 with open("conf.json", "w") as file:
