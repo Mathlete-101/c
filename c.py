@@ -105,9 +105,9 @@ if len(a1) == 2 and a1[0] == "-" and a1[1] in main_settings.keys():
 
 #notes
 elif a1 == "-n":
-    if len(sys.argv == 2):
+    if len(sys.argv) == 2:
         print(conf["notes"])
-    elif len(sys.argv == 3):
+    elif len(sys.argv) == 3:
         conf["notes"].pop(sys.argv[2])
     else:
         conf["notes"][sys.argv[2]] = sys.argv[3]
