@@ -48,13 +48,13 @@ def cmd_exec(command):
     subprocess.run(command, shell=True)
 
 #run the dry run command, if no other args were passed
-if len(sys.argv) == 0:
+if len(sys.argv) == 1:
     try:
         with open("dry_run", "r") as file:
             cmd_exec(file.read())
             exit()
     except FileNotFoundError:
-        oops()
+        print("No command to run found.")
 
 a1 = sys.argv[1]
 main_settings = {
@@ -94,7 +94,7 @@ else:
     
     if response[0] != "/":
         if dry_run:
-            with open("dry_run") as file:
+            with open("dry_run", "w") as file:
                 file.write(response)
         else:
             cmd_exec(response) 
