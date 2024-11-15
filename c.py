@@ -27,12 +27,13 @@ except FileNotFoundError:
     conf = {"api_key": "", "model_name": "gpt-4o-mini", "notes":{"shell": "bash", "system": "linux"}}
 
 
-def ask_chat(request):
+def ask_chat(request, sys):
     client = OpenAI(api_key=conf["api_key"])
     completion = client.chat.completions.create(
             model = conf["model_name"],
             messages = [
                 {"role": "system", "content": f"Information about the user: {conf['notes']}"},
+                {"role": "system", "content": sys},
                 {"role": "user", "content": request}
             ]
         )
@@ -41,7 +42,7 @@ def ask_chat(request):
     return content
 
 prompts = {
-        "write_command": lambda description: f"Write a command according the following description: '{description}'. Respond with only the command as it would be typed. If you cannot complete this task, begin your response with a '/'."
+        "write_command": "The user will give you a task to complete in the terminal. Respond with only the command as it would be typed, no extra formatting. If you cannot complete this task, begin your response with a '/' and explain why if you believe it would be useful."
 }
 
 def cmd_exec(command):
@@ -83,6 +84,14 @@ elif a1 == "-h":
     oops()
 
 
+#terrifying mode
+elif a1 in ("-i", "-ii"):
+    request = " ".join(sys.argv[2:])
+    client = OpenAI(api_key=conf["api_key"])
+    
+    while True:
+        
+
 #completions
 else:
     request = " ".join(sys.argv[1:])
@@ -90,7 +99,7 @@ else:
     if dry_run:
         request = request[1:]
         
-    response = ask_chat(prompts["write_command"](request))
+    response = ask_chat(request, prompts["write_command"])
     
     if response[0] != "/":
         if dry_run:
