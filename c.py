@@ -6,7 +6,7 @@ import subprocess
 import command_runner
 import time
 
-path_base = "/home/njensen/.tools/c_command/"
+path_base = "/mnt/adit/.tools/c/"
 
 def oops():
     print("""
@@ -129,7 +129,7 @@ elif a1 in ("-i", "-ii"):
             {"role": 'user', "content": request}
     ]
     action = ""
-    while action != "finish":
+    while True:
         print()
         completion = client.chat.completions.create(model=conf["model_name"], messages = messages, tools=tools, tool_choice="required")
 
@@ -157,6 +157,13 @@ elif a1 in ("-i", "-ii"):
                 print(response["content"])
 
             messages.append(response)
+
+            if action == "finish":
+                userInput = input("user>")
+                if userInput == "":
+                    exit()
+                else:
+                    messages.append({"role": "user", "content": userInput})
     exit()
     
 
