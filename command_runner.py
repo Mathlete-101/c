@@ -22,7 +22,7 @@ def attempt_4(command):
         # Function to continuously read and output from stdout and stderr
         while True:
             # Read stdout and stderr in non-blocking mode
-            stdout_char = os.read(process.stdout.fileno(), 1).decode('utf-8')  # Read 1 byte at a time
+            stdout_char = os.read(process.stdout.fileno(), 1).decode('utf-8', errors="replace")  # Read 1 byte at a time
 
             if stdout_char:
                 sys.stdout.write(stdout_char)

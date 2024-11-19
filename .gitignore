@@ -1,3 +1,4 @@
 conf.json
 dry_run
 __pycache__/
+*.pyc
