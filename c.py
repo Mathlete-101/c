@@ -1,13 +1,16 @@
 #!/bin/python
 from openai import OpenAI
 import json
+import os
+from datetime import datetime
 import sys
 import subprocess
-import goose
+import forgetful_goose
 import command_runner
 import time
 import functions
 from colorama import Fore, Back, Style
+
 
 class colors:
     chat = Fore.CYAN
@@ -84,8 +87,7 @@ def file_function(name, description, *parameter):
 tool_dict = {
     "execute": "execute text as a command on the system.",
     "thought": "think about what you need to do. The user does not see this.",
-    "ask": "ask the user a question. If you think you know what the user wants or can figure it out by looking around, do that instead.",
-    "finish": "print text and terminate if you have completed the task or can make no more progress on it.",
+    "finish": "print text if you think if you have completed the task or require user input to make further progress.",
 }
 tools = [functions.text_function(k, v) for k, v in tool_dict.items()]
 #tools += file_accessor.file_tools
@@ -143,36 +145,24 @@ elif a1 == "-h":
 
 
 #terrifying mode
-elif a1 in ("-i", "-ii"):
-    class c_interactive_goose(goose.goose):
-        def post_init(self):
-            self.earliest_memory= 0
-            self.memory_used = 0
-        def complete(self):
-            super().complete()
-            while self.memory_used > 20000:
-                if self.messages[earliest_memory].role == "assistant":
-                    message = self.messages[earliest_memory]
-                        
-                     
-                self.earliest_memory += 1
-            
+elif a1 in ("-i", "-ii", "-c"):
             
     request = " ".join(sys.argv[2:])
 
     client = OpenAI(api_key=conf["api_key"])
     
-    chat = c_interactive_goose(client, conf["models"]["interactive"], messages = [
+    goose = forgetful_goose.forgetful_goose(client, conf["models"]["interactive"], messages = [
             {"role": "system", "content": """The user will give you task to complete in the command line. Use the provided tools to complete it."""},
             {"role": "system", "content": f"Information you may find useful about the user: {conf['notes']} "},
             {"role": 'user', "content": request}
     ], tools=tools)
     action = ""
-    while True:
+    agent_loop = True
+    while agent_loop:
         print()
-        chat.complete()
+        goose.quack()
 
-        message = chat.last
+        message = goose.last
         for call in message.tool_calls:
             action = call.function.name.strip()
             text = json.loads(call.function.arguments)["text"]
@@ -181,27 +171,31 @@ elif a1 in ("-i", "-ii"):
 
             print(f"{colors.chat}chat> {text}")
             
-            if action == "ask":
-                response["content"] = input(f"{colors.user}user? ")
-            elif action == "say" or action == "thought" or action == "finish":
-                pass # already printed
-            
             if a1 == "-ii":
                 if input("press enter to continue"):
-                    exit()
+                    break
             
             if action == "execute":
                 response["content"] = cmd_exec(text)
                 print(response["content"])
 
-            chat(response)
+            goose(response)
 
             if action == "finish":
                 userInput = input(f"{colors.user}user> ")
                 if userInput == "":
-                    exit()
+                     agent_loop = False
                 else:
-                    chat({"role": "user", "content": userInput})
+                    goose({"role": "user", "content": userInput})
+
+    corpse = goose.body()
+    
+    os.makedirs("graveyard", exist_ok=True)
+    for f in ["latest", f"graveyard/{datetime.now().strftime('%Y%m%d_%H%M%S')}"]:
+        with open(f, 'w') as file:
+            json.dump(corpse, file)
+
+    
     exit()
     
 
