@@ -96,7 +96,7 @@ tools = [functions.text_function(k, v) for k, v in tool_dict.items()]
 if "bing_api_key" in conf.keys():
     tools.append(bing_search_tool.tool)
 #tools += file_accessor.file_tools
-tools.append(functions.multi_text_function("write_file", "writes the provided text to the provided file path.", ("path", "the location to write the text to"), ("text", "the text to write")))
+tools.append(functions.multi_text_function("write-file", "writes the provided text to the provided file path.", ("path", "the location to write the text to, relative to the pwd"), ("text", "the text to write")))
 
 
         
@@ -175,7 +175,8 @@ elif a1 in ("-i", "-ii", "-c"):
         message = goose.last
         for call in message.tool_calls:
             action = call.function.name.strip()
-            text = json.loads(call.function.arguments)["text"]
+            args = json.loads(call.function.arguments)
+            text = args["text"]
 
             response = {"role": "tool", "tool_call_id": call.id, "content":""}
 
@@ -192,6 +193,12 @@ elif a1 in ("-i", "-ii", "-c"):
             if action in tool_functions.keys():
                 response["content"] = tool_functions[action](json.loads(call.function.arguments))
                 print(response["content"])
+
+            if action == 'write-file':
+                filename = os.getcwd() + '/' + args['path']
+                with open(filename, 'w') as f:
+                    f.write(args['text'])
+                    print(f'{colors.output}wrote to {filename}')
 
             goose(response)
 

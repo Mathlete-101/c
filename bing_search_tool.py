@@ -7,8 +7,9 @@ ENDPOINT = 'https://api.bing.microsoft.com/v7.0/search'
 def transform_searchResponse(search_result):
     results = []
     searchResponse = json.loads(search_result)
-    for webPage in searchResponse['webPages']['value']:
-        results.append({k: v for k, v in webPage.items() if k in ['url', 'snippet', 'name']})
+    if 'webPages' in searchResponse.keys():
+        for webPage in searchResponse['webPages']['value']:
+            results.append({k: v for k, v in webPage.items() if k in ['url', 'snippet', 'name']})
     return json.dumps(results)
         
     
