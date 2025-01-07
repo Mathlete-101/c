@@ -5,12 +5,13 @@ import os
 from datetime import datetime
 import sys
 import subprocess
-import forgetful_goose
-import command_runner
 import time
-import functions
 from colorama import Fore, Back, Style
 
+import functions
+import forgetful_goose
+import command_runner
+from bing_search_tool import bing_search_tool
 
 class colors:
     chat = Fore.CYAN
@@ -89,7 +90,11 @@ tool_dict = {
     "thought": "think about what you need to do. The user does not see this.",
     "finish": "print text if you think if you have completed the task or require user input to make further progress.",
 }
+
+
 tools = [functions.text_function(k, v) for k, v in tool_dict.items()]
+if "bing_api_key" in conf.keys():
+    tools.append(bing_search_tool.tool)
 #tools += file_accessor.file_tools
 tools.append(functions.multi_text_function("write_file", "writes the provided text to the provided file path.", ("path", "the location to write the text to"), ("text", "the text to write")))
 
@@ -158,6 +163,11 @@ elif a1 in ("-i", "-ii", "-c"):
     ], tools=tools)
     action = ""
     agent_loop = True
+
+    tool_functions = {}
+    if "bing_api_key" in conf:
+        tool_functions['bing-search'] = bing_search_tool(conf["bing_api_key"])
+
     while agent_loop:
         print()
         goose.quack()
@@ -177,6 +187,10 @@ elif a1 in ("-i", "-ii", "-c"):
             
             if action == "execute":
                 response["content"] = cmd_exec(text)
+                print(response["content"])
+
+            if action in tool_functions.keys():
+                response["content"] = tool_functions[action](json.loads(call.function.arguments))
                 print(response["content"])
 
             goose(response)
