@@ -7,7 +7,7 @@ import sys
 import subprocess
 import time
 from colorama import Fore, Back, Style
-
+import request_tool
 import functions
 import forgetful_goose
 import command_runner
@@ -95,6 +95,7 @@ tool_dict = {
 tools = [functions.text_function(k, v) for k, v in tool_dict.items()]
 if "bing_api_key" in conf.keys():
     tools.append(bing_search_tool.tool)
+tools.append(request_tool.tool)
 #tools += file_accessor.file_tools
 tools.append(functions.multi_text_function("write-file", "writes the provided text to the provided file path.", ("path", "the location to write the text to, relative to the pwd"), ("text", "the text to write")))
 
@@ -212,7 +213,7 @@ elif a1 in ("-i", "-ii", "-c"):
     corpse = goose.body()
     
     os.makedirs("graveyard", exist_ok=True)
-    for f in ["latest", f"graveyard/{datetime.now().strftime('%Y%m%d_%H%M%S')}"]:
+    for f in ["latest", path_base + f"graveyard/{datetime.now().strftime('%Y%m%d_%H%M%S')}"]:
         with open(f, 'w') as file:
             json.dump(corpse, file)
 

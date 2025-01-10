@@ -1,6 +1,6 @@
 #a file for holding things related to chat functions
 
-def text_function(name, description):
+def text_function(name, description, tdescrip="the input text"):
     return {
             "type": "function",
             "function": {
@@ -11,7 +11,7 @@ def text_function(name, description):
                     "properties": {
                         "text": {
                             "type": "string",
-                            "descripion": "the input text"
+                            "descripion": tdescrip
                         }
                     }
                 }
