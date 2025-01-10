@@ -2,5 +2,4 @@ conf.json
 dry_run
 __pycache__/
 *.pyc
-latest
-graveyard
+log

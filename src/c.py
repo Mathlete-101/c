@@ -211,9 +211,9 @@ elif a1 in ("-i", "-ii", "-c"):
 
     corpse = goose.body()
     
-    os.makedirs("graveyard", exist_ok=True)
-    for f in ["latest", path_base + f"graveyard/{datetime.now().strftime('%Y%m%d_%H%M%S')}"]:
-        with open(f, 'w') as file:
+    os.makedirs(f"{path_base}log/graveyard", exist_ok=True)
+    for f in ["latest", f"graveyard/{datetime.now().strftime('%Y%m%d_%H%M%S')}"]:
+        with open(f"{path_base}log/{f}", 'w') as file:
             json.dump(corpse, file)
 
     
