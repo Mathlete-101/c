@@ -189,7 +189,6 @@ elif a1 in ("-i", "-ii", "-c"):
             
             if action == "execute":
                 response["content"] = cmd_exec(text)
-                print(response["content"])
 
             if action in tool_functions.keys():
                 response["content"] = tool_functions[action](json.loads(call.function.arguments))
