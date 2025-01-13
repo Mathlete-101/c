@@ -177,7 +177,7 @@ elif a1 in ("-i", "-ii", "-c"):
         for call in message.tool_calls:
             action = call.function.name.strip()
             args = json.loads(call.function.arguments)
-            text = args["text"]
+            text = args["text"] if "text" in args.keys() else ""
 
             response = {"role": "tool", "tool_call_id": call.id, "content":""}
 
